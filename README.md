@@ -1036,3 +1036,186 @@ python app.py      # starts Flask on port 5001
 | Voice-enabled chatbot | Web Speech API voice input + TTS output makes the bot accessible without typing |
 | Production-grade connection handling | MongoDB Atlas reconnection events are handled with proper error listeners — prevents the silent crash on idle connection timeout |
 | Disease-specific algorithm selection | Three different ML algorithms (Random Forest, Gradient Boosting, Logistic Regression) chosen per disease based on the specific nature of its risk factor relationships |
+
+---
+
+## 📊 Competitor Analysis
+
+### Landscape Overview
+
+NutriCare competes across three overlapping markets: **general fitness tracking**, **clinical-grade health management**, and **AI wellness assistants**. No single competitor covers all three with a prevention-first, data-calculated approach.
+
+| Competitor | Category | Strengths | Weaknesses vs NutriCare |
+|-----------|----------|-----------|------------------------|
+| **MyFitnessPal** | Calorie & fitness tracker | Massive food database, barcode scanner, large community | No disease risk prediction, no malnutrition detection, no AI advisory — pure logging only |
+| **Google Fit / Apple Health** | Wearable data aggregator | Deep device integration, step/heart-rate sensors | Requires hardware, no clinical predictions, no diet plans, no symptom analysis |
+| **Practo / 1mg** | Teleconsultation & pharmacy | Doctor booking, prescription management, lab tests | Reactive (you consult after symptoms) — no continuous preventive monitoring or AI prediction |
+| **HealthifyMe** | Diet & fitness coaching | Dietitian chat, calorie tracking, water reminders | Human coaching costs ₹1,500–₹8,000/month, no ML disease risk predictions, no malnutrition scoring |
+| **Noom** | Behaviour-change coaching | Psychology-backed weight loss, coach access | Weight-loss only focus, no disease prediction, no micronutrient assessment, expensive ($60/month) |
+| **WebMD Symptom Checker** | Symptom-to-diagnosis tool | Trusted medical content, doctor directory | No personalisation, no profile-based risk prediction, no diet planning, purely informational |
+| **Whoop / Oura Ring** | Recovery & biometric tracking | HRV, sleep staging, recovery scores | Hardware required ($300–$500 device + subscription), no dietary or disease risk intelligence |
+| **Lark Health** | Chronic disease management | FDA-listed diabetes/hypertension coaching | Enterprise/insurance focused, not consumer-accessible, no hidden malnutrition detection |
+
+---
+
+### NutriCare's Competitive Moat
+
+| Dimension | NutriCare | Typical Competitor |
+|-----------|-----------|-------------------|
+| Disease risk prediction | ✅ ML-based, 4 diseases, factor-level breakdown | ❌ Not available or requires clinical test results |
+| Hidden malnutrition detection | ✅ 6 micronutrients, symptom + diet + lifestyle scoring | ❌ Not available in any major consumer app |
+| AI dietary advisory | ✅ Personalised Gemini context (real user data injected) | ⚠️ Generic chatbot or expensive human dietitian |
+| Hardware required | ✅ None — fully software-based | ❌ Most biometric platforms need $200–$500 device |
+| Open-source / self-hostable | ✅ Full MERN stack, self-deployable | ❌ Closed SaaS platforms |
+| Price to access | ✅ Free (student project, open source) | ❌ ₹500–₹8,000/month for comparable features |
+| Preventive vs reactive | ✅ Prevention-first — predicts before symptoms | ❌ Most platforms treat you after you're already sick |
+
+---
+
+## 💰 Business Model & Revenue Strategy
+
+### Current State (v1 — Research/Student)
+NutriCare is currently open-source and free. The foundation is designed to support a commercial model without platform rewrites.
+
+---
+
+### Revenue Streams
+
+#### Tier 1 — Freemium SaaS (B2C)
+
+| Plan | Price | Features |
+|------|-------|---------|
+| **Free** | ₹0 / month | Daily logging, basic analytics, 5 AI chat messages/day, 1 disease prediction/week |
+| **Pro** | ₹299 / month | Unlimited AI chat, all 4 disease predictions, nutrition assessment, full analytics, PDF health reports |
+| **Family** | ₹599 / month | Pro features for up to 5 family members, shared health dashboard, family risk comparison |
+
+**Projected Unit Economics (Pro tier):**
+```
+Average Revenue Per User (ARPU)  = ₹299/month
+Monthly Churn Target             = < 5%
+Customer Acquisition Cost (CAC)  = ₹150 (social/content marketing)
+Lifetime Value (LTV)             = ₹299 × (1 / 0.05) = ₹5,980
+LTV : CAC Ratio                  = 5,980 : 150 ≈ 40:1  (healthy SaaS benchmark: > 3:1)
+```
+
+---
+
+#### Tier 2 — B2B Corporate Wellness
+
+Companies with 100+ employees pay per-seat for NutriCare as an employee wellness benefit:
+
+| Package | Price | Target |
+|---------|-------|--------|
+| **Starter** | ₹150/employee/month | SMBs (50–200 employees) |
+| **Enterprise** | ₹100/employee/month | Large orgs (200+ employees, volume discount) |
+| **Annual Contract** | 20% discount on above | Committed annual deals |
+
+**Why B2B is high-margin:**
+- Single procurement decision covers hundreds of users
+- No per-user customer support overhead
+- Long contract durations (12–24 months) reduce churn to near zero
+- Upsell path: aggregate anonymised wellness analytics dashboard for HR teams
+
+---
+
+#### Tier 3 — Data & Analytics (B2B2C)
+
+*With explicit user consent and anonymisation:*
+
+| Stream | Description | Model |
+|--------|-------------|-------|
+| **Population health insights** | Anonymised aggregate trends (e.g. "35% of 25–35-year-olds in Bangalore show Vitamin D deficiency") | Sold to hospitals, insurance companies, public health agencies |
+| **Research partnerships** | De-identified dataset for nutrition/diabetes research institutions | Revenue-share or licensing fee |
+| **Pharmaceutical targeting** | Anonymised risk cohort insights for supplement/pharma companies | CPM-based or flat licensing |
+
+---
+
+#### Tier 4 — Marketplace (Phase 2)
+
+| Feature | Revenue Model |
+|---------|--------------|
+| **Dietitian connect** | 20% commission on consultations booked through the platform |
+| **Lab test booking** | 15% referral fee on blood tests ordered (Thyrocare, Redcliffe integration) |
+| **Supplement recommendations** | Affiliate commissions on Amazon/PharmEasy product links shown in Nutrition Check results |
+| **Telehealth escalation** | Revenue share with telemedicine partners when ML flags "Very High" risk |
+
+---
+
+### Cost Structure
+
+| Cost Item | Type | Estimated Monthly Cost (1,000 active users) |
+|-----------|------|---------------------------------------------|
+| MongoDB Atlas (M10 cluster) | Infrastructure | ₹3,500 (~$40) |
+| Node.js hosting (Railway / Render) | Infrastructure | ₹2,600 (~$30) |
+| Python ML service (small VM) | Infrastructure | ₹1,750 (~$20) |
+| Google Gemini API | Usage-based | ₹4,400 (~$50) at ~5 AI messages/user/day |
+| Gmail SMTP (Google Workspace) | Fixed | ₹1,250 (~$15) |
+| Domain + SSL | Fixed | ₹800/year (~₹67/month) |
+| **Total Infrastructure** | | **~₹14,300/month** (~$165) |
+
+**Break-even analysis at Pro tier:**
+```
+Monthly infrastructure cost  = ₹14,300
+Pro plan price               = ₹299/user/month
+Break-even users             = 14,300 / 299 ≈ 48 paying users
+```
+48 paying Pro users cover all infrastructure costs. Everything above is profit margin.
+
+---
+
+### Growth Analytics — Key Metrics to Track
+
+| Metric | Description | Target (Year 1) |
+|--------|-------------|-----------------|
+| **MAU** (Monthly Active Users) | Users who log at least 1 daily log | 10,000 |
+| **DAU/MAU Ratio** | Stickiness — daily vs monthly users | > 30% |
+| **Streak Retention** | % users maintaining 7-day logging streak | > 40% |
+| **Free → Pro Conversion** | % free users upgrading | 5–8% |
+| **Monthly Churn** | % Pro users cancelling | < 5% |
+| **Prediction Engagement** | % users who generate predictions monthly | > 60% |
+| **AI Chat Sessions/User** | Average AI queries per active user per week | > 3 |
+| **NPS** (Net Promoter Score) | User satisfaction benchmark | > 50 |
+| **CAC** (Customer Acquisition Cost) | Total marketing spend / new paying users | < ₹200 |
+
+---
+
+### Growth Roadmap
+
+```
+Phase 1 — Foundation (Now)
+  ✅ Core platform: logging, predictions, diet, nutrition, AI chat
+  ✅ MongoDB Atlas cloud deployment
+  ✅ Automated email notifications
+
+Phase 2 — Mobile & Scale (6 months)
+  → React Native mobile app (iOS + Android)
+  → Push notifications replacing email reminders
+  → Wearable integration (Google Fit / Apple Health API)
+  → Freemium paywall implementation (Razorpay/Stripe)
+
+Phase 3 — B2B & Marketplace (12 months)
+  → Corporate wellness dashboard (HR admin panel)
+  → Dietitian connect marketplace
+  → Lab test booking integration
+  → Advanced ML: retrain models on real accumulated user data
+
+Phase 4 — Intelligence Layer (18–24 months)
+  → Longitudinal risk tracking (how risks change over 6–12 months per user)
+  → Predictive alerts: "Your diabetes risk has increased 15% this month"
+  → Insurance company API integrations
+  → Population-level health reporting for public health agencies
+  → Fine-tuned health LLM (replacing generic Gemini with domain-specific model)
+```
+
+---
+
+### Total Addressable Market (TAM)
+
+| Market Segment | Size |
+|---------------|------|
+| Global digital health market (2026) | $660 billion |
+| India preventive health tech market | ₹22,000 crore (~$2.6B), growing at 22% CAGR |
+| Corporate wellness India | ₹6,500 crore, 35% CAGR |
+| Hidden malnutrition affected population (India) | 340 million people — largely unaddressed by current apps |
+
+NutriCare's initial serviceable market: **India's urban 25–45 age group** — 80 million people with smartphones, rising health consciousness, and no affordable preventive health intelligence tool.
