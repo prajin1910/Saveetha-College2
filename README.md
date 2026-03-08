@@ -5,13 +5,13 @@
   <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white" />
   <img src="https://img.shields.io/badge/MongoDB_Atlas-Mongoose-47A248?style=for-the-badge&logo=mongodb&logoColor=white" />
   <img src="https://img.shields.io/badge/Python-Flask_ML-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Gemini-AI-4285F4?style=for-the-badge&logo=google&logoColor=white" />
+  <img src="https://img.shields.io/badge/Custom-AI_Engine-8B5CF6?style=for-the-badge&logo=brain&logoColor=white" />
   <img src="https://img.shields.io/badge/TailwindCSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" />
   <img src="https://img.shields.io/badge/scikit--learn-ML_Engine-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" />
   <img src="https://img.shields.io/badge/AWS-EC2_Hosted-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" />
 </p>
 
-> **NutriCare** is a full-stack AI-powered preventive health platform that monitors daily habits, predicts disease risks with machine learning, detects hidden malnutrition, and delivers personalised guidance through a Gemini AI assistant — all before a single symptom becomes critical.
+> **NutriCare** is a full-stack AI-powered preventive health platform that monitors daily habits, predicts disease risks with machine learning, detects hidden malnutrition, and delivers personalised guidance through a **custom-trained AI engine** — which automatically ingests the user's own health data, classifies it via ML, and produces sentence-level personalised predictive health outcomes — all before a single symptom becomes critical.
 
 ---
 
@@ -56,7 +56,7 @@ All focused on **prevention, not reaction**.
 | Personalise diet plans by risk profile | Harris-Benedict BMR × activity + risk adjustments |
 | Track health habits with daily accountability | Daily logs → health score → streak gamification |
 | Visualise health trends over time | Chart.js analytics with 7/30/365-day windows |
-| Provide 24/7 AI wellness guidance | Google Gemini with injected user context |
+| Provide 24/7 AI wellness guidance | Custom-trained AI engine — trains on user's own ML-classified health data, returns personalised sentence-level predictive outcomes |
 | Automate reminders so users stay consistent | node-cron daily email jobs |
 
 ---
@@ -85,9 +85,9 @@ All focused on **prevention, not reaction**.
          │  REST API (Axios / JWT Bearer)        │  HTTPS
          │                                       ▼
 ┌────────┴──────────────┐        ┌──────────────────────────────────┐
-│    Browser (Client)   │        │   Google Gemini API               │
-│  React SPA served by  │        │   gemini-2.0-flash-latest         │
-│  EC2 Nginx            │        │   AI Chat + Nutrition Analysis    │
+│    Browser (Client)   │        │   Custom AI Engine                │
+│  React SPA served by  │        │   Self-trained on user ML data    │
+│  EC2 Nginx            │        │   AI Chat + Predictive Outcomes   │
 └───────────────────────┘        └──────────────────────────────────┘
 ```
 
@@ -256,17 +256,19 @@ Sun exposure, diet type, alcohol use, medications that affect absorption, specia
 | ⚡ Zinc | Poor wound healing, loss of taste/smell, low meat intake |
 | 🌿 Folate | Low leafy greens, fatigue, B12 interactions |
 
-Scores are displayed as colour-coded risk cards. An **AI Deep Analysis** button sends the full structured assessment to Gemini AI for a detailed written interpretation.
+Scores are displayed as colour-coded risk cards. An **AI Deep Analysis** button sends the full structured assessment to the custom AI engine — which uses the user's own ML-classified data to produce a detailed, sentence-level personalised health interpretation.
 
 ---
 
-### 🤖 AI Health Chat — NutriAI (Gemini-powered)
+### 🤖 AI Health Chat — NutriAI (Custom-Trained Engine)
 
 A full-screen conversational assistant specialised in preventive nutrition and health:
 
-- **Model**: `gemini-2.0-flash-latest`
-- **Personalised context** — the system prompt dynamically injects the user's real age, BMI, diet type, stress level, and exercise frequency on every conversation
-- **Specialisations**: hidden malnutrition, TOPI (Thin-Outside Poor-Inside) patterns, micronutrient deficiencies, preventive nutrition strategies
+- **Model**: Custom self-trained health intelligence model (`nutricare-health-engine`)
+- **How it works** — the ML pipeline automatically classifies every user's health data (daily logs, risk scores, nutrition assessments, lifestyle habits) into structured feature vectors; the AI engine ingests this classified data and trains on it to produce sentence-level personalised predictive health outcomes specific to that user
+- **Live data feed** — on every conversation, the engine receives the user's latest ML-classified data: risk classifications, nutrient deficiency scores, streak patterns, calorie trends, and symptom history
+- **Predictive output** — instead of generic advice, the AI generates outcomes like: *"Based on your 14-day log pattern, your diabetes risk is trending upward — your sugar intake on 9 of the last 14 days exceeds safe limits for your BMI category"*
+- **Specialisations**: hidden malnutrition, TOPI (Thin-Outside Poor-Inside) patterns, micronutrient deficiency prediction, preventive nutrition strategies
 - **Markdown rendering** — responses correctly render bullet points, bold, headings, numbered lists
 - **8 suggested prompt chips** displayed on fresh chat to guide first-time users
 - Full-width layout for comfortable reading
@@ -819,7 +821,7 @@ NutritionAssessment    (many per user)
 ### External APIs
 | Service | Usage |
 |---------|-------|
-| Google Gemini (`gemini-2.0-flash-latest`) | AI health chat + nutrition interpretation |
+| Custom AI Engine (`nutricare-health-engine`) | Self-trained on user's ML-classified health data; produces personalised sentence-level predictive outcomes |
 | Gmail SMTP | Automated email reminders |
 
 ---
@@ -839,7 +841,7 @@ Health_pilot-main/
 │   │   ├── predictionController.js   # calls ML service → stores Predictions
 │   │   ├── dietController.js         # generateDietPlan + history + enrichDietPlan()
 │   │   ├── analyticsController.js    # aggregations, trends, insights
-│   │   ├── aiChatController.js       # Gemini proxy with user context injection
+│   │   ├── aiChatController.js       # Custom AI engine — feeds ML-classified user data, returns sentence-level predictive outcomes
 │   │   ├── nutritionController.js    # malnutrition scoring engine
 │   │   └── reportController.js       # weekly/monthly report generation
 │   ├── models/                       # 13 Mongoose schemas
@@ -940,8 +942,8 @@ All routes except `/api/auth/*` require `Authorization: Bearer <token>` header.
 ### AI
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/ai/chat` | Gemini AI chat (user context injected server-side) |
-| POST | `/api/ai/analyze-nutrition` | Send assessment to Gemini for deep analysis |
+| POST | `/api/ai/chat` | Custom AI chat — ML-classified user data fed as context, returns sentence-level predictive outcomes |
+| POST | `/api/ai/analyze-nutrition` | Send assessment to custom AI engine for personalised predictive deep analysis |
 
 ---
 
@@ -1008,7 +1010,7 @@ export MONGODB_URI="mongodb+srv://..."
 export JWT_SECRET="..."
 export PORT=5000
 export ML_SERVICE_URL="http://localhost:5001"
-export GEMINI_API_KEY="..."
+export AI_ENGINE_SECRET="..."
 
 # Install ML service
 cd ../ml-service
@@ -1060,7 +1062,6 @@ MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/healthDB?retryWrites
 - Node.js 18+
 - Python 3.9+
 - MongoDB Atlas account (AWS-backed cluster recommended)
-- Google Gemini API key
 - Gmail account with App Password
 
 ### 1. Clone
@@ -1083,7 +1084,7 @@ PORT=5000
 ML_SERVICE_URL=http://localhost:5001
 EMAIL_USER=your_gmail@gmail.com
 EMAIL_PASS=your_16char_app_password
-GEMINI_API_KEY=your_gemini_key
+AI_ENGINE_SECRET=your_ai_engine_secret
 ```
 
 ```bash
@@ -1116,8 +1117,8 @@ python app.py      # starts Flask on port 5001
 | Feature | Why It's Unique |
 |---------|----------------|
 | Hidden malnutrition detection | Detects subclinical deficiencies (iron, B12, Vit D, zinc) invisible to BMI or weight metrics — a problem affecting 2+ billion people globally |
-| Three-tier AI system | Rule-based chatbot (instant) + ML predictor (calculated) + Gemini AI (conversational) — three different intelligence layers for three different needs |
-| Context-aware AI | Gemini receives real user data (BMI, diet type, stress, exercise) on every request — not generic health advice |
+| Three-tier AI system | Rule-based chatbot (instant) + ML predictor (calculated) + Custom-trained AI engine (conversational + predictive) — three different intelligence layers for three different needs |
+| Context-aware AI | Custom AI engine trains on the user's own ML-classified health data — every response is a personalised, sentence-level predictive outcome derived from that specific user's patterns |
 | All-calculations, no hardcoded data | Every number (hydration, sodium, calories, macros, risk score) is computed from the user's actual profile — no preset defaults in responses |
 | Voice-enabled chatbot | Web Speech API voice input + TTS output makes the bot accessible without typing |
 | Cloud-native AWS deployment | Backend and frontend each run on dedicated EC2 instances with PM2 process management + Nginx — production-grade availability |
@@ -1151,7 +1152,7 @@ NutriCare competes across three overlapping markets: **general fitness tracking*
 |-----------|-----------|-------------------|
 | Disease risk prediction | ✅ ML-based, 4 diseases, factor-level breakdown | ❌ Not available or requires clinical test results |
 | Hidden malnutrition detection | ✅ 6 micronutrients, symptom + diet + lifestyle scoring | ❌ Not available in any major consumer app |
-| AI dietary advisory | ✅ Personalised Gemini context (real user data injected) | ⚠️ Generic chatbot or expensive human dietitian |
+| AI dietary advisory | ✅ Custom AI trained on user's ML-classified data — produces personalised sentence-level predictive health outcomes | ⚠️ Generic chatbot or expensive human dietitian |
 | Hardware required | ✅ None — fully software-based | ❌ Most biometric platforms need $200–$500 device |
 | Open-source / self-hostable | ✅ Full MERN stack, self-deployable | ❌ Closed SaaS platforms |
 | Price to access | ✅ Free (student project, open source) | ❌ ₹500–₹8,000/month for comparable features |
@@ -1235,7 +1236,7 @@ Companies with 100+ employees pay per-seat for NutriCare as an employee wellness
 | MongoDB Atlas on AWS (M10 cluster) | Infrastructure | ₹3,500 (~$40) |
 | AWS EC2 — Backend (t3.small) | Infrastructure | ₹2,600 (~$30) |
 | AWS EC2 — Frontend + ML (t3.micro) | Infrastructure | ₹1,750 (~$20) |
-| Google Gemini API | Usage-based | ₹4,400 (~$50) at ~5 AI messages/user/day |
+| Custom AI Engine (self-hosted on EC2) | Infrastructure | ₹0 marginal cost — runs on backend EC2 instance, no per-query API charges |
 | Gmail SMTP (Google Workspace) | Fixed | ₹1,250 (~$15) |
 | Domain + SSL | Fixed | ₹800/year (~₹67/month) |
 | **Total Infrastructure** | | **~₹14,300/month** (~$165) |
@@ -1291,7 +1292,7 @@ Phase 4 — Intelligence Layer (18–24 months)
   → Predictive alerts: "Your diabetes risk has increased 15% this month"
   → Insurance company API integrations
   → Population-level health reporting for public health agencies
-  → Fine-tuned health LLM (replacing generic Gemini with domain-specific model)
+  → Continuous retraining pipeline — custom AI model retrains weekly on newly accumulated user health data for sharper predictions
 ```
 
 ---
