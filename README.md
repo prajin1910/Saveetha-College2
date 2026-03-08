@@ -8,6 +8,7 @@
   <img src="https://img.shields.io/badge/Gemini-AI-4285F4?style=for-the-badge&logo=google&logoColor=white" />
   <img src="https://img.shields.io/badge/TailwindCSS-3-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" />
   <img src="https://img.shields.io/badge/scikit--learn-ML_Engine-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white" />
+  <img src="https://img.shields.io/badge/AWS-EC2_Hosted-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" />
 </p>
 
 > **NutriCare** is a full-stack AI-powered preventive health platform that monitors daily habits, predicts disease risks with machine learning, detects hidden malnutrition, and delivers personalised guidance through a Gemini AI assistant — all before a single symptom becomes critical.
@@ -27,7 +28,8 @@
 9. [Project Structure](#-project-structure)
 10. [API Reference](#-api-reference)
 11. [Security](#-security)
-12. [Setup & Installation](#-setup--installation)
+12. [AWS Deployment](#-aws-deployment)
+13. [Setup & Installation](#-setup--installation)
 
 ---
 
@@ -62,42 +64,31 @@ All focused on **prevention, not reaction**.
 ## 🏗️ System Architecture
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                        Browser (Client)                       │
-│           React 18 + Vite + TailwindCSS + Chart.js            │
-└────────────────────────┬─────────────────────────────────────┘
-                         │  REST API  (Axios / JWT Bearer)
-                         ▼
-┌──────────────────────────────────────────────────────────────┐
-│               Node.js / Express  — Port 5000                  │
-│                                                               │
-│  Auth   Profile   Logs   Predictions   Diet   Analytics       │
-│  AI Chat   Nutrition   Report   Cron Scheduler                │
-│                                                               │
-│  JWT Middleware → verifies every protected route              │
-└──────────┬─────────────────────────┬────────────────────────┘
-           │ Mongoose ODM             │  Axios HTTP
-           ▼                          ▼
-┌─────────────────────┐   ┌──────────────────────────────────┐
-│   MongoDB Atlas     │   │  Python Flask ML Service         │
-│   13 collections    │   │  Port 5001                       │
-│                     │   │                                  │
-│  Users              │   │  /predict/disease  (4 models)    │
-│  HealthProfiles     │   │  /predict/symptoms               │
-│  LifestyleHabits    │   │  /health  (ping)                 │
-│  FoodHabits         │   │                                  │
-│  MedicalHistories   │   │  RandomForestClassifier          │
-│  FamilyHistories    │   │  GradientBoostingClassifier      │
-│  DailyLogs          │   │  LogisticRegression              │
-│  HealthScores       │   └──────────────────────────────────┘
-│  Predictions        │
-│  DietPlans          │              │  HTTPS
-│  Streaks            │              ▼
-│  NutritionAssessments│  ┌──────────────────────────────────┐
-│  Index              │  │   Google Gemini API               │
-└─────────────────────┘  │   gemini-2.0-flash-latest         │
-                          │   AI Chat + Nutrition Analysis    │
-                          └──────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                          AWS Cloud                                   │
+│                                                                     │
+│  ┌──────────────────────────┐   ┌──────────────────────────────┐   │
+│  │  AWS EC2 Instance         │   │  AWS EC2 Instance             │   │
+│  │  (Frontend)               │   │  (Backend)                    │   │
+│  │                           │   │                               │   │
+│  │  React 18 + Vite Build    │   │  Node.js / Express  :5000     │   │
+│  │  TailwindCSS + Chart.js   │   │  Python Flask ML    :5001     │   │
+│  │  Nginx static serving     │   │  node-cron scheduler          │   │
+│  └──────────────────────────┘   └──────────────────┬────────────┘   │
+│                                                     │ Mongoose ODM   │
+│                                                     ▼                │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  MongoDB Atlas  (AWS-backed cluster)                          │   │
+│  │  13 collections — Users, Profiles, Logs, Predictions, ...    │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
+         │  REST API (Axios / JWT Bearer)        │  HTTPS
+         │                                       ▼
+┌────────┴──────────────┐        ┌──────────────────────────────────┐
+│    Browser (Client)   │        │   Google Gemini API               │
+│  React SPA served by  │        │   gemini-2.0-flash-latest         │
+│  EC2 Nginx            │        │   AI Chat + Nutrition Analysis    │
+└───────────────────────┘        └──────────────────────────────────┘
 ```
 
 ### Request Flow (example: Generate Predictions)
@@ -962,9 +953,104 @@ All routes except `/api/auth/*` require `Authorization: Bearer <token>` header.
 | Password storage | bcrypt, 10 salt rounds — never stored in plaintext |
 | Authorisation | `userId` always taken from verified JWT payload — never from request body (prevents IDOR) |
 | Route protection | All non-auth routes return `401 Unauthorized` if token missing or invalid |
-| Secrets | `.env` file excluded from git via `.gitignore` |
-| Database | MongoDB Atlas with connection string in env — not hardcoded |
+| Secrets | `.env` file excluded from git via `.gitignore` — env vars set directly on EC2 |
+| Database | MongoDB Atlas (AWS) with connection string in env — not hardcoded |
 | Input validation | `express-validator` on auth routes |
+| EC2 Security Groups | Backend port 5000 and ML port 5001 locked to frontend EC2 IP only; port 80/443 open for public traffic |
+| SSH Access | EC2 instances accessed via key-pair authentication only — password login disabled |
+
+---
+
+## ☁️ AWS Deployment
+
+NutriCare is fully deployed on **Amazon Web Services** using two EC2 instances and MongoDB Atlas hosted on AWS infrastructure.
+
+### Deployment Architecture
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│                      AWS Account                              │
+│                                                              │
+│  EC2 Instance #1 — Backend                                   │
+│  ├── Amazon Linux 2 / Ubuntu AMI                             │
+│  ├── Node.js 18 + Express API  (port 5000, PM2 managed)      │
+│  ├── Python 3.9 + Flask ML service  (port 5001, PM2)         │
+│  ├── Security Group: 5000 open to frontend EC2 IP            │
+│  └── Elastic IP assigned for stable DNS                      │
+│                                                              │
+│  EC2 Instance #2 — Frontend                                  │
+│  ├── Amazon Linux 2 / Ubuntu AMI                             │
+│  ├── Nginx serving Vite production build (port 80/443)       │
+│  ├── SSL via Let's Encrypt (Certbot)                         │
+│  └── Security Group: 80 + 443 open to public                 │
+│                                                              │
+│  MongoDB Atlas (AWS-backed)                                  │
+│  ├── Cloud provider: AWS  (ap-south-1 / us-east-1)           │
+│  ├── Cluster tier: M0 / M10                                  │
+│  └── IP whitelist: backend EC2 Elastic IP                    │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### EC2 Backend Setup
+
+```bash
+# On EC2 instance (backend)
+sudo apt update && sudo apt install -y nodejs npm python3 python3-pip
+npm install -g pm2
+
+# Clone and install
+git clone <repo-url>
+cd Health_pilot-main/backend
+npm install
+
+# Set environment variables
+export MONGODB_URI="mongodb+srv://..."
+export JWT_SECRET="..."
+export PORT=5000
+export ML_SERVICE_URL="http://localhost:5001"
+export GEMINI_API_KEY="..."
+
+# Install ML service
+cd ../ml-service
+pip3 install -r requirements.txt
+
+# Start both services with PM2 (process manager)
+pm2 start backend/server.js --name "nutricare-api"
+pm2 start "python3 ml-service/app.py" --name "nutricare-ml" --interpreter none
+pm2 save
+pm2 startup    # auto-restart on EC2 reboot
+```
+
+### EC2 Frontend Setup
+
+```bash
+# On EC2 instance (frontend)
+sudo apt update && sudo apt install -y nodejs npm nginx
+
+# Build production bundle
+git clone <repo-url>
+cd Health_pilot-main/frontend
+npm install
+npm run build    # outputs to dist/
+
+# Serve with Nginx
+sudo cp -r dist/* /var/www/html/
+sudo nano /etc/nginx/sites-available/default
+# Set: root /var/www/html; try_files $uri /index.html; (for SPA routing)
+sudo systemctl restart nginx
+```
+
+### MongoDB Atlas — AWS Configuration
+
+The MongoDB Atlas cluster is configured to run on **AWS infrastructure**:
+1. Atlas Dashboard → Create Cluster → Cloud Provider: **Amazon Web Services**
+2. Region: `ap-south-1` (Mumbai) for low-latency from India
+3. Database access: username + password authentication
+4. Network access: backend EC2 Elastic IP whitelisted
+5. Connection string (in backend `.env`):
+```
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/healthDB?retryWrites=true&w=majority
+```
 
 ---
 
@@ -973,7 +1059,7 @@ All routes except `/api/auth/*` require `Authorization: Bearer <token>` header.
 ### Prerequisites
 - Node.js 18+
 - Python 3.9+
-- MongoDB Atlas account (or local MongoDB)
+- MongoDB Atlas account (AWS-backed cluster recommended)
 - Google Gemini API key
 - Gmail account with App Password
 
@@ -1034,7 +1120,8 @@ python app.py      # starts Flask on port 5001
 | Context-aware AI | Gemini receives real user data (BMI, diet type, stress, exercise) on every request — not generic health advice |
 | All-calculations, no hardcoded data | Every number (hydration, sodium, calories, macros, risk score) is computed from the user's actual profile — no preset defaults in responses |
 | Voice-enabled chatbot | Web Speech API voice input + TTS output makes the bot accessible without typing |
-| Production-grade connection handling | MongoDB Atlas reconnection events are handled with proper error listeners — prevents the silent crash on idle connection timeout |
+| Cloud-native AWS deployment | Backend and frontend each run on dedicated EC2 instances with PM2 process management + Nginx — production-grade availability |
+| Production-grade connection handling | MongoDB Atlas (AWS) with reconnection event handlers — prevents silent crashes on idle connection timeout |
 | Disease-specific algorithm selection | Three different ML algorithms (Random Forest, Gradient Boosting, Logistic Regression) chosen per disease based on the specific nature of its risk factor relationships |
 
 ---
@@ -1145,9 +1232,9 @@ Companies with 100+ employees pay per-seat for NutriCare as an employee wellness
 
 | Cost Item | Type | Estimated Monthly Cost (1,000 active users) |
 |-----------|------|---------------------------------------------|
-| MongoDB Atlas (M10 cluster) | Infrastructure | ₹3,500 (~$40) |
-| Node.js hosting (Railway / Render) | Infrastructure | ₹2,600 (~$30) |
-| Python ML service (small VM) | Infrastructure | ₹1,750 (~$20) |
+| MongoDB Atlas on AWS (M10 cluster) | Infrastructure | ₹3,500 (~$40) |
+| AWS EC2 — Backend (t3.small) | Infrastructure | ₹2,600 (~$30) |
+| AWS EC2 — Frontend + ML (t3.micro) | Infrastructure | ₹1,750 (~$20) |
 | Google Gemini API | Usage-based | ₹4,400 (~$50) at ~5 AI messages/user/day |
 | Gmail SMTP (Google Workspace) | Fixed | ₹1,250 (~$15) |
 | Domain + SSL | Fixed | ₹800/year (~₹67/month) |
