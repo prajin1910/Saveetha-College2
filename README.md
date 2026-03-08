@@ -78,7 +78,7 @@ All focused on **prevention, not reaction**.
 │                                                     │ Mongoose ODM   │
 │                                                     ▼                │
 │  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  MongoDB Atlas  (AWS-backed cluster)                          │   │
+│  │  DynamoDB(AWS-backed cluster)                          │   │
 │  │  13 collections — Users, Profiles, Logs, Predictions, ...    │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────────────────┘
@@ -800,7 +800,7 @@ NutritionAssessment    (many per user)
 |-----------|---------|---------|
 | Express | 4.18 | REST API framework |
 | Mongoose | 9.2 | MongoDB ODM |
-| MongoDB Atlas | — | Cloud database |
+| DynamoDB | — | Cloud database |
 | jsonwebtoken | 9.0 | JWT sign and verify |
 | bcryptjs | 2.4 | Password hashing |
 | Nodemailer | 6.9 | Email via Gmail SMTP |
@@ -833,7 +833,7 @@ Health_pilot-main/
 ├── backend/
 │   ├── server.js                     # App entry: dotenv → connectDB → Express → cron
 │   ├── config/
-│   │   └── db.js                     # MongoDB Atlas connection + event handlers
+│   │   └── db.js                     # DynamoDB connection + event handlers
 │   ├── controllers/
 │   │   ├── authController.js         # register, login, getMe, changePassword
 │   │   ├── profileController.js      # 5 profile upserts + getCompleteProfile
@@ -956,7 +956,7 @@ All routes except `/api/auth/*` require `Authorization: Bearer <token>` header.
 | Authorisation | `userId` always taken from verified JWT payload — never from request body (prevents IDOR) |
 | Route protection | All non-auth routes return `401 Unauthorized` if token missing or invalid |
 | Secrets | `.env` file excluded from git via `.gitignore` — env vars set directly on EC2 |
-| Database | MongoDB Atlas (AWS) with connection string in env — not hardcoded |
+| Database | DynamoDB (AWS) with connection string in env — not hardcoded |
 | Input validation | `express-validator` on auth routes |
 | EC2 Security Groups | Backend port 5000 and ML port 5001 locked to frontend EC2 IP only; port 80/443 open for public traffic |
 | SSH Access | EC2 instances accessed via key-pair authentication only — password login disabled |
@@ -965,7 +965,7 @@ All routes except `/api/auth/*` require `Authorization: Bearer <token>` header.
 
 ## ☁️ AWS Deployment
 
-NutriCare is fully deployed on **Amazon Web Services** using two EC2 instances and MongoDB Atlas hosted on AWS infrastructure.
+NutriCare is fully deployed on **Amazon Web Services** using two EC2 instances and DynamoDB hosted on AWS infrastructure.
 
 ### Deployment Architecture
 
@@ -986,7 +986,7 @@ NutriCare is fully deployed on **Amazon Web Services** using two EC2 instances a
 │  ├── SSL via Let's Encrypt (Certbot)                         │
 │  └── Security Group: 80 + 443 open to public                 │
 │                                                              │
-│  MongoDB Atlas (AWS-backed)                                  │
+│  DynamoDB (AWS-backed)                                  │
 │  ├── Cloud provider: AWS  (ap-south-1 / us-east-1)           │
 │  ├── Cluster tier: M0 / M10                                  │
 │  └── IP whitelist: backend EC2 Elastic IP                    │
@@ -1042,9 +1042,9 @@ sudo nano /etc/nginx/sites-available/default
 sudo systemctl restart nginx
 ```
 
-### MongoDB Atlas — AWS Configuration
+### DynamoDB — AWS Configuration
 
-The MongoDB Atlas cluster is configured to run on **AWS infrastructure**:
+The DynamoDB cluster is configured to run on **AWS infrastructure**:
 1. Atlas Dashboard → Create Cluster → Cloud Provider: **Amazon Web Services**
 2. Region: `ap-south-1` (Mumbai) for low-latency from India
 3. Database access: username + password authentication
@@ -1061,7 +1061,7 @@ MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/healthDB?retryWrites
 ### Prerequisites
 - Node.js 18+
 - Python 3.9+
-- MongoDB Atlas account (AWS-backed cluster recommended)
+- DynamoDB account (AWS-backed cluster recommended)
 - Gmail account with App Password
 
 ### 1. Clone
@@ -1122,7 +1122,7 @@ python app.py      # starts Flask on port 5001
 | All-calculations, no hardcoded data | Every number (hydration, sodium, calories, macros, risk score) is computed from the user's actual profile — no preset defaults in responses |
 | Voice-enabled chatbot | Web Speech API voice input + TTS output makes the bot accessible without typing |
 | Cloud-native AWS deployment | Backend and frontend each run on dedicated EC2 instances with PM2 process management + Nginx — production-grade availability |
-| Production-grade connection handling | MongoDB Atlas (AWS) with reconnection event handlers — prevents silent crashes on idle connection timeout |
+| Production-grade connection handling | DynamoDB (AWS) with reconnection event handlers — prevents silent crashes on idle connection timeout |
 | Disease-specific algorithm selection | Three different ML algorithms (Random Forest, Gradient Boosting, Logistic Regression) chosen per disease based on the specific nature of its risk factor relationships |
 
 ---
@@ -1233,7 +1233,7 @@ Companies with 100+ employees pay per-seat for NutriCare as an employee wellness
 
 | Cost Item | Type | Estimated Monthly Cost (1,000 active users) |
 |-----------|------|---------------------------------------------|
-| MongoDB Atlas on AWS (M10 cluster) | Infrastructure | ₹3,500 (~$40) |
+| DynamoDB on AWS (M10 cluster) | Infrastructure | ₹3,500 (~$40) |
 | AWS EC2 — Backend (t3.small) | Infrastructure | ₹2,600 (~$30) |
 | AWS EC2 — Frontend + ML (t3.micro) | Infrastructure | ₹1,750 (~$20) |
 | Custom AI Engine (self-hosted on EC2) | Infrastructure | ₹0 marginal cost — runs on backend EC2 instance, no per-query API charges |
@@ -1272,7 +1272,7 @@ Break-even users             = 14,300 / 299 ≈ 48 paying users
 ```
 Phase 1 — Foundation (Now)
   ✅ Core platform: logging, predictions, diet, nutrition, AI chat
-  ✅ MongoDB Atlas cloud deployment
+  ✅ DynamoDB cloud deployment
   ✅ Automated email notifications
 
 Phase 2 — Mobile & Scale (6 months)
